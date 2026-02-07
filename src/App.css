@@ -1,0 +1,251 @@
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100vh;
+  background: #0f0f12;
+  color: #e4e4e7;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #27272a;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #71717a;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.mode-tabs button {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mode-tabs button:hover {
+  background: #3f3f46;
+  color: #e4e4e7;
+}
+
+.mode-tabs button.active {
+  background: #00ff88;
+  color: #0f0f12;
+  border-color: #00ff88;
+}
+
+.error {
+  margin: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #3f1f1f;
+  color: #fca5a5;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.main {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.camera-section {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+
+.video-wrap {
+  position: relative;
+  background: #18181b;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  max-width: 100%;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #71717a;
+  font-size: 0.875rem;
+}
+
+.placeholder.clickable {
+  cursor: pointer;
+  color: #a1a1aa;
+}
+
+.placeholder.clickable:hover {
+  color: #00ff88;
+}
+
+.file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.save-png-btn {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  background: #27272a;
+  color: #e4e4e7;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.save-png-btn:hover {
+  background: #3f3f46;
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+.angles-panel {
+  flex: 0 0 240px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.angles-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a1a1aa;
+}
+
+.angles-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.angle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #27272a;
+  font-size: 0.8125rem;
+}
+
+.angle-row:last-child {
+  border-bottom: none;
+}
+
+.angle-name {
+  color: #d4d4d8;
+}
+
+.angle-value {
+  font-variant-numeric: tabular-nums;
+  color: #00ff88;
+  font-weight: 500;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: #71717a;
+}
+
+.angle-help {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #27272a;
+}
+
+.angle-help-toggle {
+  padding: 0;
+  font-size: 0.75rem;
+  color: #71717a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.angle-help-toggle:hover {
+  color: #00ff88;
+}
+
+.angle-help-content {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  line-height: 1.45;
+}
+
+.angle-help-content p {
+  margin: 0 0 0.5rem;
+}
+
+.angle-help-content code {
+  font-size: 0.7rem;
+  background: #27272a;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.angle-help-note {
+  font-style: italic;
+}
+
+.angle-help-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+}
+
+.angle-help-list li {
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .main {
+    flex-direction: column;
+  }
+
+  .angles-panel {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
