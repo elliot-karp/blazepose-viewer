@@ -88,9 +88,13 @@
   color: #71717a;
 }
 
-.display-size-tabs button {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.75rem;
+.display-size-btn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 600;
   background: #27272a;
   color: #a1a1aa;
   border: 1px solid #3f3f46;
@@ -98,15 +102,15 @@
   cursor: pointer;
 }
 
-.display-size-tabs button:hover {
+.display-size-btn:hover:not(:disabled) {
   background: #3f3f46;
-  color: #e4e4e7;
+  color: #00ff88;
+  border-color: #00ff88;
 }
 
-.display-size-tabs button.active {
-  background: #00ff88;
-  color: #0f0f12;
-  border-color: #00ff88;
+.display-size-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .video-wrap {
@@ -117,18 +121,6 @@
   aspect-ratio: 4/3;
   max-width: 100%;
   transition: max-width 0.2s ease;
-}
-
-.video-wrap.display-size-compact {
-  max-width: 260px;
-}
-
-.video-wrap.display-size-default {
-  max-width: 400px;
-}
-
-.video-wrap.display-size-large {
-  max-width: 640px;
 }
 
 .canvas {

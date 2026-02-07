@@ -13,7 +13,9 @@ export interface JointAngleRow {
 }
 
 type Mode = "camera" | "image";
-type DisplaySize = "compact" | "default" | "large";
+
+const DISPLAY_SIZE_PX = [400, 500, 600, 720, 880, 1024];
+const DEFAULT_DISPLAY_SIZE_INDEX = 2; // 600px
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -22,7 +24,7 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<Mode>("camera");
-  const [displaySize, setDisplaySize] = useState<DisplaySize>("default");
+  const [displaySizeIndex, setDisplaySizeIndex] = useState(DEFAULT_DISPLAY_SIZE_INDEX);
   const [landmarks, setLandmarks] = useState<Landmark[] | null>(null);
   const [angles, setAngles] = useState<JointAngleRow[]>(() =>
     JOINT_ANGLES.map(({ name }) => ({ name, value: null }))
@@ -222,38 +224,37 @@ function App() {
   const handleSavePng = () => {
     const canvas = canvasRef.current;
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
+    const scale = 1.35;
     const lines = angles
       .filter((a) => a.value != null)
       .map((a) => `${a.name}: ${a.value!.toFixed(1)}°`);
     const anglesText = lines.join("\n");
-    let targetCanvas: HTMLCanvasElement = canvas;
-    if (anglesText) {
-      const padding = 12;
-      const lineHeight = 14;
-      const font = "12px system-ui, sans-serif";
-      const textHeight = lines.length * lineHeight + padding * 2;
-      const totalHeight = canvas.height + textHeight;
-      const composite = document.createElement("canvas");
-      composite.width = canvas.width;
-      composite.height = totalHeight;
-      const compCtx = composite.getContext("2d");
-      if (compCtx) {
-        compCtx.font = font;
-        compCtx.fillStyle = "#18181b";
-        compCtx.fillRect(0, 0, composite.width, composite.height);
-        compCtx.drawImage(canvas, 0, 0);
+    const padding = 18;
+    const lineHeight = 20;
+    const font = "15px system-ui, sans-serif";
+    const textHeight = anglesText ? lines.length * lineHeight + padding * 2 : 0;
+    const totalHeight = Math.round(canvas.height * scale) + textHeight;
+    const composite = document.createElement("canvas");
+    composite.width = Math.round(canvas.width * scale);
+    composite.height = totalHeight;
+    const compCtx = composite.getContext("2d");
+    if (compCtx) {
+      compCtx.fillStyle = "#18181b";
+      compCtx.fillRect(0, 0, composite.width, composite.height);
+      compCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, composite.width, Math.round(canvas.height * scale));
+      if (anglesText) {
         compCtx.fillStyle = "#00ff88";
-        compCtx.fillRect(0, canvas.height, composite.width, textHeight);
+        compCtx.fillRect(0, Math.round(canvas.height * scale), composite.width, textHeight);
         compCtx.fillStyle = "#0f0f12";
+        compCtx.font = font;
         lines.forEach((line, i) => {
-          compCtx.fillText(line, padding, canvas.height + padding + (i + 1) * lineHeight);
+          compCtx.fillText(line, padding, Math.round(canvas.height * scale) + padding + (i + 1) * lineHeight);
         });
       }
-      targetCanvas = composite;
     }
     const link = document.createElement("a");
     link.download = `blazepose-${Date.now()}.png`;
-    link.href = targetCanvas.toDataURL("image/png");
+    link.href = composite.toDataURL("image/png");
     link.click();
   };
 
@@ -288,18 +289,29 @@ function App() {
         <section className="camera-section">
           <div className="display-size-tabs">
             <span className="display-size-label">Display size:</span>
-            {(["compact", "default", "large"] as const).map((size) => (
-              <button
-                key={size}
-                type="button"
-                className={displaySize === size ? "active" : ""}
-                onClick={() => setDisplaySize(size)}
-              >
-                {size === "compact" ? "Small" : size === "default" ? "Medium" : "Large"}
-              </button>
-            ))}
+            <button
+              type="button"
+              className="display-size-btn"
+              onClick={() => setDisplaySizeIndex((i) => Math.max(0, i - 1))}
+              disabled={displaySizeIndex === 0}
+              aria-label="Smaller"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              className="display-size-btn"
+              onClick={() => setDisplaySizeIndex((i) => Math.min(DISPLAY_SIZE_PX.length - 1, i + 1))}
+              disabled={displaySizeIndex === DISPLAY_SIZE_PX.length - 1}
+              aria-label="Larger"
+            >
+              +
+            </button>
           </div>
-          <div className={`video-wrap display-size-${displaySize}`}>
+          <div
+            className="video-wrap"
+            style={{ maxWidth: DISPLAY_SIZE_PX[displaySizeIndex] }}
+          >
             {mode === "camera" && (
               <>
                 <video
