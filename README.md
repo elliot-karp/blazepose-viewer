@@ -21,3 +21,5 @@ Allow camera access when prompted. Move into frame to see the pose overlay and a
 npm run build
 npm run preview
 ```
+
+Live: [GitHub Pages](https://elliot-karp.github.io/blazepose-viewer/)
