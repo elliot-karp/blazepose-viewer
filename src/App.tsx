@@ -6,6 +6,7 @@ import {
   angleAtJoint2D,
 } from "./poseConstants";
 import { drawPoseOverlay } from "./drawOverlay";
+import { translations, type Locale } from "./translations";
 import "./App.css";
 
 export interface JointAngleRow {
@@ -16,7 +17,7 @@ export interface JointAngleRow {
 type Mode = "camera" | "image";
 type AngleMode = "2d" | "3d";
 
-const DISPLAY_SIZE_PX = [400, 500, 600, 720, 880, 1024];
+const DISPLAY_SIZE_PX = [400, 500, 600, 720, 880, 1024, 1200, 1440, 1680];
 const DEFAULT_DISPLAY_SIZE_INDEX = 2; // 600px
 const VISIBILITY_THRESHOLD = 0.5;
 
@@ -29,6 +30,7 @@ function App() {
   const [mode, setMode] = useState<Mode>("camera");
   const [displaySizeIndex, setDisplaySizeIndex] = useState(DEFAULT_DISPLAY_SIZE_INDEX);
   const [angleMode, setAngleMode] = useState<AngleMode>("2d");
+  const [locale, setLocale] = useState<Locale>("en");
   const [landmarks, setLandmarks] = useState<Landmark[] | null>(null);
   const [angles, setAngles] = useState<JointAngleRow[]>(() =>
     JOINT_ANGLES.map(({ name }) => ({ name, value: null }))
@@ -241,9 +243,10 @@ function App() {
     const canvas = canvasRef.current;
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     const scale = 1.35;
+    const t = translations[locale];
     const lines = angles
-      .filter((a) => a.value != null)
-      .map((a) => `${a.name}: ${a.value!.toFixed(1)}°`);
+      .map((a, idx) => a.value != null ? `${t.jointNames[idx] ?? a.name}: ${a.value!.toFixed(1)}°` : null)
+      .filter((s): s is string => s != null);
     const anglesText = lines.join("\n");
     const padding = 18;
     const lineHeight = 20;
@@ -275,27 +278,52 @@ function App() {
   };
 
   const canSavePng = (mode === "camera" && cameraReady && landmarks) || (mode === "image" && imageReady);
+  const t = translations[locale];
 
   return (
     <div className="app">
       <header className="header">
-        <h1>BlazePose Viewer</h1>
-        <p className="subtitle">Full-body pose + joint angles · Camera or upload image</p>
-        <div className="mode-tabs">
-          <button
-            type="button"
-            className={mode === "camera" ? "active" : ""}
-            onClick={switchToCamera}
-          >
-            Camera
-          </button>
-          <button
-            type="button"
-            className={mode === "image" ? "active" : ""}
-            onClick={() => setMode("image")}
-          >
-            Upload image
-          </button>
+        <div className="header-main">
+          <div>
+            <h1>{t.title}</h1>
+            <p className="subtitle">{t.subtitle}</p>
+            <div className="mode-tabs">
+              <button
+                type="button"
+                className={mode === "camera" ? "active" : ""}
+                onClick={switchToCamera}
+              >
+                {t.camera}
+              </button>
+              <button
+                type="button"
+                className={mode === "image" ? "active" : ""}
+                onClick={() => setMode("image")}
+              >
+                {t.uploadImage}
+              </button>
+            </div>
+          </div>
+          <div className="locale-switcher">
+            <button
+              type="button"
+              className={locale === "en" ? "active" : ""}
+              onClick={() => setLocale("en")}
+              title="English"
+              aria-label="English"
+            >
+              🇺🇸
+            </button>
+            <button
+              type="button"
+              className={locale === "es" ? "active" : ""}
+              onClick={() => setLocale("es")}
+              title="Español"
+              aria-label="Español"
+            >
+              🇦🇷
+            </button>
+          </div>
         </div>
       </header>
 
@@ -304,13 +332,13 @@ function App() {
       <div className="main">
         <section className="camera-section">
           <div className="display-size-tabs">
-            <span className="display-size-label">Display size:</span>
+            <span className="display-size-label">{t.displaySize}</span>
             <button
               type="button"
               className="display-size-btn"
               onClick={() => setDisplaySizeIndex((i) => Math.max(0, i - 1))}
               disabled={displaySizeIndex === 0}
-              aria-label="Smaller"
+              aria-label={t.smaller}
             >
               −
             </button>
@@ -319,7 +347,7 @@ function App() {
               className="display-size-btn"
               onClick={() => setDisplaySizeIndex((i) => Math.min(DISPLAY_SIZE_PX.length - 1, i + 1))}
               disabled={displaySizeIndex === DISPLAY_SIZE_PX.length - 1}
-              aria-label="Larger"
+              aria-label={t.larger}
             >
               +
             </button>
@@ -343,7 +371,7 @@ function App() {
                   style={{ display: cameraReady ? "block" : "none" }}
                 />
                 {!cameraReady && !error && (
-                  <div className="placeholder">Starting camera…</div>
+                  <div className="placeholder">{t.startingCamera}</div>
                 )}
               </>
             )}
@@ -369,7 +397,7 @@ function App() {
                     role="button"
                     tabIndex={0}
                   >
-                    Click to upload an image
+                    {t.clickToUpload}
                   </div>
                 )}
               </>
@@ -377,14 +405,14 @@ function App() {
           </div>
           {canSavePng && (
             <button type="button" className="save-png-btn" onClick={handleSavePng}>
-              Save PNG (overlay + angles)
+              {t.savePng}
             </button>
           )}
         </section>
 
         <aside className="angles-panel">
           <div className="angles-panel-header">
-            <h2>Joint angles (°)</h2>
+            <h2>{t.jointAngles}</h2>
             <div className="angle-mode-tabs">
               <button
                 type="button"
@@ -405,20 +433,20 @@ function App() {
             </div>
           </div>
           <ul className="angles-list">
-            {angles.map(({ name, value }) => (
+            {angles.map((row, idx) => (
               <li
-                key={name}
-                className={`angle-row ${value == null ? "angle-row-unavailable" : ""}`}
+                key={row.name}
+                className={`angle-row ${row.value == null ? "angle-row-unavailable" : ""}`}
               >
-                <span className="angle-name">{name}</span>
+                <span className="angle-name">{t.jointNames[idx] ?? row.name}</span>
                 <span className="angle-value">
-                  {value != null ? `${value.toFixed(1)}°` : "—"}
+                  {row.value != null ? `${row.value.toFixed(1)}°` : "—"}
                 </span>
               </li>
             ))}
           </ul>
           {!landmarks && (cameraReady || imageReady) && (
-            <p className="hint">No pose detected. Try a clearer full-body image.</p>
+            <p className="hint">{t.noPoseHint}</p>
           )}
 
           <div className="angle-help">
@@ -427,18 +455,16 @@ function App() {
               className="angle-help-toggle"
               onClick={() => setShowAngleHelp(!showAngleHelp)}
             >
-              {showAngleHelp ? "Hide" : "How are angles calculated?"}
+              {showAngleHelp ? t.angleHelpHide : t.angleHelpShow}
             </button>
             {showAngleHelp && (
               <div className="angle-help-content">
-                <p>
-                  Each angle is the angle at the joint between the two segments. <strong>2D</strong> uses only x,y (matches the overlay). <strong>3D</strong> uses x,y,z and can look wrong when the bend is in depth. Formula: angle at B = arccos((BA·BC) / (|BA||BC|)). 180° = straight, smaller = more bent.
-                </p>
-                <p className="angle-help-note">Toggle 2D/3D above. See <code>ANGLE_CALCULATION.md</code> and <code>ANGLE_EXPLORATION.md</code> in the repo.</p>
+                <p>{t.angleHelpContent}</p>
+                <p className="angle-help-note">{t.angleHelpNote}</p>
                 <ul className="angle-help-list">
-                  {JOINT_ANGLES.map(({ name, description }) => (
+                  {JOINT_ANGLES.map(({ name, description }, i) => (
                     <li key={name}>
-                      <strong>{name}</strong>: {description}
+                      <strong>{t.jointNames[i] ?? name}</strong>: {description}
                     </li>
                   ))}
                 </ul>
