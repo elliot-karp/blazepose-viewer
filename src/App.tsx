@@ -4,6 +4,18 @@ import { JOINT_ANGLES } from "./poseConstants";
 import { drawPoseOverlay } from "./drawOverlay";
 import { computeAngles, emptyAngles, type JointAngleRow } from "./computeAngles";
 import { translations, type Locale } from "./translations";
+
+const LOCALE_STORAGE_KEY = "blazepose-viewer-locale";
+
+function getStoredLocale(): Locale {
+  try {
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored === "en" || stored === "es") return stored;
+  } catch {
+    /* ignore */
+  }
+  return "en";
+}
 import { saveImage } from "./galleryDb";
 import Gallery from "./Gallery";
 import Compare, { emptySide, type PoseSide } from "./Compare";
@@ -23,7 +35,16 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [displaySizeIndex, setDisplaySizeIndex] = useState(DEFAULT_DISPLAY_SIZE_INDEX);
   const [angleMode, setAngleMode] = useState<AngleMode>("2d");
-  const [locale, setLocale] = useState<Locale>("en");
+  const [locale, setLocaleState] = useState<Locale>(getStoredLocale);
+
+  const setLocale = (next: Locale) => {
+    setLocaleState(next);
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  };
   const [landmarks, setLandmarks] = useState<Landmark[] | null>(null);
   const [angles, setAngles] = useState<JointAngleRow[]>(emptyAngles());
   const [error, setError] = useState<string | null>(null);
