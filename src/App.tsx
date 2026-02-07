@@ -35,13 +35,12 @@ function App() {
 
   const poseRef = useRef<ReturnType<typeof createPose> | null>(null);
 
-  useEffect(() => {
-    if (mode === "camera") {
-      if (imageUrl) URL.revokeObjectURL(imageUrl);
-      setImageUrl(null);
-      setImageReady(false);
-    }
-  }, [mode]);
+  function switchToCamera() {
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    setImageUrl(null);
+    setImageReady(false);
+    setMode("camera");
+  }
 
   function createPose(smoothLandmarks = false) {
     if (typeof window.Pose === "undefined") return null;
@@ -108,7 +107,7 @@ function App() {
         await video.play();
         setCameraReady(true);
         setError(null);
-      } catch (e) {
+      } catch {
         setError("Camera access denied or unavailable.");
         return;
       }
@@ -269,7 +268,7 @@ function App() {
           <button
             type="button"
             className={mode === "camera" ? "active" : ""}
-            onClick={() => setMode("camera")}
+            onClick={switchToCamera}
           >
             Camera
           </button>
