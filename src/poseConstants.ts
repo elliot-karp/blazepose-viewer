@@ -28,7 +28,8 @@ export const JOINT_ANGLES: {
 ];
 
 /**
- * Angle at landmark B between vectors BA and BC, in degrees.
+ * 3D angle at landmark B between vectors BA and BC, in degrees.
+ * Uses x, y, z — can disagree with what you see on screen when the bend is in depth.
  */
 export function angleAtJoint(
   a: Landmark,
@@ -40,6 +41,28 @@ export function angleAtJoint(
   const dot = ba.x * bc.x + ba.y * bc.y + ba.z * bc.z;
   const magBa = Math.sqrt(ba.x ** 2 + ba.y ** 2 + ba.z ** 2);
   const magBc = Math.sqrt(bc.x ** 2 + bc.y ** 2 + bc.z ** 2);
+  if (magBa < 1e-6 || magBc < 1e-6) return null;
+  const cos = Math.max(-1, Math.min(1, dot / (magBa * magBc)));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
+/**
+ * 2D angle at landmark B between vectors BA and BC using only x, y (image plane).
+ * Matches the angle you see on the overlay: 180° straight, 90° right angle, 0° fully bent.
+ * Use this so displayed angles don’t “get weird” when the joint bends in depth.
+ */
+export function angleAtJoint2D(
+  a: Landmark,
+  b: Landmark,
+  c: Landmark
+): number | null {
+  const bax = a.x - b.x;
+  const bay = a.y - b.y;
+  const bcx = c.x - b.x;
+  const bcy = c.y - b.y;
+  const dot = bax * bcx + bay * bcy;
+  const magBa = Math.sqrt(bax * bax + bay * bay);
+  const magBc = Math.sqrt(bcx * bcx + bcy * bcy);
   if (magBa < 1e-6 || magBc < 1e-6) return null;
   const cos = Math.max(-1, Math.min(1, dot / (magBa * magBc)));
   return (Math.acos(cos) * 180) / Math.PI;

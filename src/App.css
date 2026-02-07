@@ -182,13 +182,48 @@
   padding: 1rem 1.25rem;
 }
 
-.angles-panel h2 {
-  margin: 0 0 0.75rem;
+.angles-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.angles-panel-header h2 {
+  margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #a1a1aa;
+}
+
+.angle-mode-tabs {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.angle-mode-tabs button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.angle-mode-tabs button:hover {
+  background: #3f3f46;
+  color: #e4e4e7;
+}
+
+.angle-mode-tabs button.active {
+  background: #00ff88;
+  color: #0f0f12;
+  border-color: #00ff88;
 }
 
 .angles-list {
@@ -208,6 +243,12 @@
 
 .angle-row:last-child {
   border-bottom: none;
+}
+
+.angle-row-unavailable .angle-name,
+.angle-row-unavailable .angle-value {
+  text-decoration: line-through;
+  color: #71717a;
 }
 
 .angle-name {

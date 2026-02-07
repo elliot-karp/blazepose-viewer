@@ -1,16 +1,16 @@
 # How joint angles are calculated
 
-## Formula
+## Formula (2D — what the app uses)
 
-Every angle is the **angle at the middle point (the joint)** between the two segments that meet there.
+The app uses **2D angles** (x, y only from BlazePose) so the number matches the green skeleton on screen.
 
-We use three landmarks: **A** (proximal), **B** (joint), **C** (distal). The angle at **B** is the angle between the vectors **B→A** and **B→C** in 3D (x, y, z from BlazePose).
+We use three landmarks: **A** (proximal), **B** (joint), **C** (distal). The angle at **B** is the angle between the vectors **B→A** and **B→C** in the **image plane** (x, y only):
 
-- Vector **BA** = (A.x − B.x, A.y − B.y, A.z − B.z)  
-- Vector **BC** = (C.x − B.x, C.y − B.y, C.z − B.z)  
+- Vector **BA** = (A.x − B.x, A.y − B.y)  
+- Vector **BC** = (C.x − B.x, C.y − B.y)  
 - **Angle** = arccos( (BA · BC) / (|BA| × |BC|) ) × 180/π degrees  
 
-So we’re measuring the **3D angle** between the two segments. Straight = 180°, fully bent (segments in line pointing opposite) = 0°.
+So we’re measuring the angle **as you see it on the overlay**: straight = 180°, right angle = 90°, fully bent = 0°. See **ANGLE_EXPLORATION.md** for why 3D angles were removed (they “get weird” past 90° when the joint bends in depth).
 
 ## Why angles can look “wrong”
 
@@ -42,4 +42,4 @@ Landmark indices (BlazePose): 0 nose, 11 left shoulder, 12 right shoulder, 13 le
 - **Neck (L)**: Head tilt relative to the shoulder line.  
 - **Torso lean**: Rough torso orientation between the two hips, from the left shoulder.
 
-All angles are in **degrees** and use the **same 3D dot-product formula** at the joint.
+All angles are in **degrees** and use the **same 2D dot-product formula** (x, y only) at the joint so they match the overlay. For the "past 90°" / depth issue, see **ANGLE_EXPLORATION.md**.

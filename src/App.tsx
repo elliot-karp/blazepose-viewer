@@ -3,6 +3,7 @@ import type { Landmark } from "./types/mediapipe";
 import {
   JOINT_ANGLES,
   angleAtJoint,
+  angleAtJoint2D,
 } from "./poseConstants";
 import { drawPoseOverlay } from "./drawOverlay";
 import "./App.css";
@@ -13,9 +14,11 @@ export interface JointAngleRow {
 }
 
 type Mode = "camera" | "image";
+type AngleMode = "2d" | "3d";
 
 const DISPLAY_SIZE_PX = [400, 500, 600, 720, 880, 1024];
 const DEFAULT_DISPLAY_SIZE_INDEX = 2; // 600px
+const VISIBILITY_THRESHOLD = 0.5;
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,6 +28,7 @@ function App() {
 
   const [mode, setMode] = useState<Mode>("camera");
   const [displaySizeIndex, setDisplaySizeIndex] = useState(DEFAULT_DISPLAY_SIZE_INDEX);
+  const [angleMode, setAngleMode] = useState<AngleMode>("2d");
   const [landmarks, setLandmarks] = useState<Landmark[] | null>(null);
   const [angles, setAngles] = useState<JointAngleRow[]>(() =>
     JOINT_ANGLES.map(({ name }) => ({ name, value: null }))
@@ -36,6 +40,11 @@ function App() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const poseRef = useRef<ReturnType<typeof createPose> | null>(null);
+
+  useEffect(() => {
+    if (landmarks) updateAnglesFromLandmarks(landmarks);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only recompute when user toggles 2D/3D
+  }, [angleMode]);
 
   function switchToCamera() {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
@@ -63,10 +72,17 @@ function App() {
   function updateAnglesFromLandmarks(lm: Landmark[]) {
     const rows: JointAngleRow[] = JOINT_ANGLES.map(({ name, indices }) => {
       const [i, j, k] = indices;
-      const val =
-        lm[i] && lm[j] && lm[k]
-          ? angleAtJoint(lm[i], lm[j], lm[k])
-          : null;
+      const a = lm[i];
+      const b = lm[j];
+      const c = lm[k];
+      const visible =
+        a && b && c &&
+        (a.visibility == null || a.visibility >= VISIBILITY_THRESHOLD) &&
+        (b.visibility == null || b.visibility >= VISIBILITY_THRESHOLD) &&
+        (c.visibility == null || c.visibility >= VISIBILITY_THRESHOLD);
+      const val = visible
+        ? (angleMode === "2d" ? angleAtJoint2D(a, b, c) : angleAtJoint(a, b, c))
+        : null;
       return { name, value: val };
     });
     setAngles(rows);
@@ -353,7 +369,7 @@ function App() {
                     role="button"
                     tabIndex={0}
                   >
-                    Click or drop to upload an image
+                    Click to upload an image
                   </div>
                 )}
               </>
@@ -367,10 +383,33 @@ function App() {
         </section>
 
         <aside className="angles-panel">
-          <h2>Joint angles (°)</h2>
+          <div className="angles-panel-header">
+            <h2>Joint angles (°)</h2>
+            <div className="angle-mode-tabs">
+              <button
+                type="button"
+                className={angleMode === "2d" ? "active" : ""}
+                onClick={() => setAngleMode("2d")}
+                title="Matches the angle you see on screen (x, y only)"
+              >
+                2D
+              </button>
+              <button
+                type="button"
+                className={angleMode === "3d" ? "active" : ""}
+                onClick={() => setAngleMode("3d")}
+                title="Uses x, y, z; can differ from screen when joint bends in depth"
+              >
+                3D
+              </button>
+            </div>
+          </div>
           <ul className="angles-list">
             {angles.map(({ name, value }) => (
-              <li key={name} className="angle-row">
+              <li
+                key={name}
+                className={`angle-row ${value == null ? "angle-row-unavailable" : ""}`}
+              >
                 <span className="angle-name">{name}</span>
                 <span className="angle-value">
                   {value != null ? `${value.toFixed(1)}°` : "—"}
@@ -393,9 +432,9 @@ function App() {
             {showAngleHelp && (
               <div className="angle-help-content">
                 <p>
-                  Each angle is the <strong>3D angle at the joint</strong> between the two body segments (e.g. upper arm and forearm at the elbow). Formula: angle at B between points A and C = arccos((BA·BC) / (|BA||BC|)) in degrees. 180° = straight, smaller = more bent.
+                  Each angle is the angle at the joint between the two segments. <strong>2D</strong> uses only x,y (matches the overlay). <strong>3D</strong> uses x,y,z and can look wrong when the bend is in depth. Formula: angle at B = arccos((BA·BC) / (|BA||BC|)). 180° = straight, smaller = more bent.
                 </p>
-                <p className="angle-help-note">Angles use BlazePose’s x,y,z (normalized + depth). They can look different from a 2D view because we measure in 3D. See <code>ANGLE_CALCULATION.md</code> in the repo for full details.</p>
+                <p className="angle-help-note">Toggle 2D/3D above. See <code>ANGLE_CALCULATION.md</code> and <code>ANGLE_EXPLORATION.md</code> in the repo.</p>
                 <ul className="angle-help-list">
                   {JOINT_ANGLES.map(({ name, description }) => (
                     <li key={name}>
